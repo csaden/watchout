@@ -3,3 +3,17 @@
 /* Note: an asteroid image is included in this repo.
 Feel free to use it if you like. */
 
+#canvas {
+}
+
+svg {
+  display: block;
+  margin: 0 auto;
+}
+
+/*
+.ghost {
+  height: 500;
+  width: 500;
+}
+*/
