@@ -9,6 +9,7 @@ Feel free to use it if you like. */
 svg {
   display: block;
   margin: 0 auto;
+  border: 2px solid #eee;
 }
 
 /*
