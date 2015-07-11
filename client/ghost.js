@@ -1,20 +1,16 @@
-/* make ghost class */
-
 var Ghost = function(id, imagePath) {
-  this.x = this.getNewX();
-  this.y = this.getNewY();
   this.id = id;
   this.imagePath = imagePath;
+  this.x = this.getNewX();
+  this.y = this.getNewY();
 };
 
 Ghost.prototype.getNewX = function() {
-  var newX = Math.random() * (parseInt(svg.style("width")) - 100);
-  this.x = newX;
-  return newX;
+  this.x = Math.random() * (parseInt(svg.style("width"), 10) - 100);
+  return this.x;
 };
 
 Ghost.prototype.getNewY = function() {
-  var newY = Math.random() * (parseInt(svg.style("height")) - 100);
-  this.y = newY;
-  return newY;
+  this.y = Math.random() * (parseInt(svg.style("height"), 10) - 100);
+  return this.y;
 };
