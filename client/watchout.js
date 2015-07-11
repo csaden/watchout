@@ -11,8 +11,9 @@ var data = [];
 
 // create ghost ids and image paths
 for (var i = 0; i < 10; i++) {
+  var idx = Math.floor(Math.random() * imagePaths.length);
   data.push( { "id": i, 
-                "imagePath": imagePaths[1]
+                "imagePath": imagePaths[idx]
               });
 }
 
@@ -27,13 +28,17 @@ var pacman = [{
 // make pacman draggable
 var drag = d3.behavior.drag()
               .origin(function (d) { return d; })
+              .on("drag", dragMove);
+
+              /*
               .on("dragstart", dragStarted)
               .on("drag", dragging)
-              .on("dragend", dragEnded);
+              .on("dragend", dragEnded); */
 
 // append pacman
 svg.append("svg:image")
   .data(pacman)
+  .attr("class", "pacman")
   .attr("xlink:href", function(pacman) { return pacman.imagePath; })
   .attr("x", parseInt(svg.style("width"))/2)
   .attr("y", parseInt(svg.style("height"))/2)
@@ -58,7 +63,7 @@ var update = function(data) {
   svg.selectAll("image.ghost")
     .data(data, function(d) { return d.id; })
     .transition()
-    .duration(800)
+    .duration(1000)
     .ease("cubic")
     .attr("x", function() { return Math.random() * (parseInt(svg.style("width")) - 100); })
     .attr("y", function() { return Math.random() * (parseInt(svg.style("height")) - 100); })
@@ -68,18 +73,34 @@ setInterval(function() {
   update(data);
 }, 1000);
 
-function dragStarted(d) {
-  d3.event.sourceEvent.stopPropagation();
-  d3.select(this).classed("dragging", true);
+// function dragStarted(d) {
+//   d3.event.sourceEvent.stopPropagation();
+//   d3.select(this).classed("dragging", true);
+// };
+
+// function dragging(d) {
+//   d3.select(this) 
+//     .attr("x", d.x += d3.event.x)
+//     .attr("y", d.y += d3.event.y);
+// };
+
+// function dragEnded(d) {
+//   d3.select(this).classed("dragging", false);
+// };
+
+
+function dragMove(d) {
+  d.x = d3.event.x;
+  d.y = d3.event.y;
+  d3.select(".pacman")
+    .attr("x", d.x)
+    .attr("y", d.y);
 };
 
-function dragging(d) {
-  d3.select(this).attr("x", d.x = d3.event.x).attr("y", d.y = d3.event.y);
-};
 
-function dragEnded(d) {
-  d3.select(this).classed("dragging", false);
-};
+
+
+
 
 
 
