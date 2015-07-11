@@ -1,4 +1,11 @@
-// start slingin' some d3 here.
+// GLOBAL VARIABLES
+var current = 0;
+var best = 0;
+var collisionCount = 0;
+
+
+
+
 
 var svg = d3.select("#canvas")
             .append("svg")
@@ -17,6 +24,7 @@ for (var i = 0; i < 10; i++) {
               });
 }
 
+// create pacman
 var pacman = [{
   "id": "hero",
   "imagePath": "assets/pacman.png",
@@ -67,28 +75,15 @@ var update = function(data) {
     .ease("cubic")
     .attr("x", function() { return Math.random() * (parseInt(svg.style("width")) - 100); })
     .attr("y", function() { return Math.random() * (parseInt(svg.style("height")) - 100); })
+    .tween("custom", checkCollisions);
 };
 
 setInterval(function() {
   update(data);
 }, 1000);
 
-// function dragStarted(d) {
-//   d3.event.sourceEvent.stopPropagation();
-//   d3.select(this).classed("dragging", true);
-// };
 
-// function dragging(d) {
-//   d3.select(this) 
-//     .attr("x", d.x += d3.event.x)
-//     .attr("y", d.y += d3.event.y);
-// };
-
-// function dragEnded(d) {
-//   d3.select(this).classed("dragging", false);
-// };
-
-
+// make pacman draggable
 function dragMove(d) {
   d.x = d3.event.x;
   d.y = d3.event.y;
@@ -97,11 +92,47 @@ function dragMove(d) {
     .attr("y", d.y);
 };
 
+// get center of object
+function getCenter(d) {
+  return [d.x+25, d.y+25];
+};
+
+// check distance between two objects
+function hasCollided(d) {
+  debugger;
+  return (Math.sqrt((d.x - pacman[0].x)^2 + (d.y - pacman[0].y)^2) <= 50);
+};
+
+function checkCollisions(d) {
+  if (hasCollided(d)) {
+    updateBestScore();
+    score = 0;
+    updateScore();
+    //increment collisons
+    collisionIncrementer();
+  }
+};
+
+// increase collision counter
+function collisionIncrementer() {
+  var currCount = d3.select(".collisions span").text();
+  currCount = parseInt(currCount)
+  currCount++;
+  d3.select(".collisions span").text(currCount);
+};
 
 
 
+function updateScore() {
+  // d3.select(".score")
+  //   .
 
+};
 
+function updateBestScore() {
+  // d3.select(".bestScore")
+  //   .
 
+};
 
 
