@@ -17,10 +17,9 @@ var imagePaths = ["assets/blinky.ico", "assets/inky.png", "assets/pinky.png"];
 var data = [];
 
 // create ghost ids and image paths
-for (var i = 0; i < 10; i++) {
-  var idx = Math.floor(Math.random() * imagePaths.length);
-  data.push( { "id": i, 
-                "imagePath": imagePaths[idx]
+for (var i = 0; i <= 12; i++) {
+  data.push( { "id": i,
+                "imagePath": imagePaths[i % 3]
               });
 }
 
