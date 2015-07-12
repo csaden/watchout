@@ -1,14 +1,21 @@
 // GLOBAL VARIABLES
-var current = 0;
-var best = 0;
-var collisionCount = 0;
-var pacmanRadius = 25;
 
-var svg = d3.select("#canvas")
+settings = {
+  "width": 800,
+  "height": 600,
+  "pacmanRadius": 25,
+  "imageHeight": "50px",
+  "imageWidth": "50px",
+  "animationDuration": 1500
+};
+
+var current, best, collisions;
+
+var svg = d3.select(".board")
   .append("svg")
   .attr("class", "svg")
-  .attr('width', '800px')
-  .attr('height', '600px');
+  .attr('width', pixelize(settings.width))
+  .attr('height', pixelize(settings.height));
 
 // all ghost image paths
 var imagePaths = ["assets/blinky.ico", "assets/inky.png", "assets/pinky.png"];
@@ -19,116 +26,113 @@ for (var i = 0; i < 12; i++) {
   data.push( new Ghost( i, imagePaths[i % 3] ) );
 }
 
-// create pacman
-var pacman = [{
-  "id": "hero",
-  "imagePath": "assets/pacman.png",
-  "x": parseInt(svg.style("width"), 10) /2,
-  "y": parseInt(svg.style("height"), 10) /2
-}];
+// // make pacman draggable
+// var drag = d3.behavior.drag()
+//     .on("drag", dragMove);
+
+// create and append pacman
+var pacman = svg.append("image")
+  .attr("class", "pacman")
+  .attr("xlink:href", "assets/pacman.png")
+  .attr("x", settings.width / 2 - settings.pacmanRadius)
+  .attr("y", settings.height / 2 - settings.pacmanRadius)
+  .attr("height", settings.imageHeight)
+  .attr("width", settings.imageWidth);
+
+// append ghosts
+var ghosts = svg.selectAll("span")
+  .data(data, function(d) { return d.id; })
+  .enter()
+  .append("image")
+  .attr("class", "ghost")
+  .attr("xlink:href", function(d) {return d.imagePath; })
+  .attr("x", function(d) { return d.x; })
+  .attr("y", function(d) { return d.y; })
+  .attr("height", settings.imageHeight)
+  .attr("width", settings.imageWidth);
+
+// move function for ghosts
+var move = function(element) {
+  element.transition()
+    .duration(settings.animationDuration)
+    .ease("cubic-in-out")
+    .attr("x", function(d) { return d.getNewX(); })
+    .attr("y", function(d) { return d.getNewY(); })
+
+    // transition can emit 'start' 'interrupt' and 'end' events
+    // recursively move one element (this) after the previous transition ends
+    .each("end", function() {
+      move(d3.select(this));
+    });
+};
+
+// start moving all ghosts
+move(ghosts);
 
 // make pacman draggable
-var drag = d3.behavior.drag()
-  .origin(function (d) { return d; })
-  .on("drag", dragMove);
+svg.on("mousemove", function() {
+  var loc = d3.mouse(this);
+  if (settings.pacmanRadius > loc[0] || loc[0] > settings.width - settings.pacmanRadius) {
+    return;
+  }
+  if (settings.pacmanRadius > loc[1] || loc[1] > settings.height - settings.pacmanRadius) {
+    return;
+  }
+  pacman.attr("x", loc[0] - settings.pacmanRadius)
+    .attr("y", loc[1] - settings.pacmanRadius);
+});
 
+// check for collisions
+d3.timer(checkCollisions);
 
-var setUpPacman = function() {
-
-  // append pacman
-  svg.append("image")
-    .data(pacman)
-    .attr("class", "pacman")
-    .attr("xlink:href", function(pacman) { return pacman.imagePath; })
-    .attr("x", parseInt(svg.style("width"), 10) /2)
-    .attr("y", parseInt(svg.style("height"), 10) /2)
-    .attr("height", 50)
-    .attr("width", 50)
-    .call(drag);
-
-  // append ghosts
-  svg.selectAll("span")
-    .data(data, function(d) { return d.id; })
-    .enter()
-    .append("image")
-    .attr("class", "ghost")
-    .attr("xlink:href", function(d) {return d.imagePath; })
-    .attr("x", function(d) { return d.x; })
-    .attr("y", function(d) { return d.y; })
-    .attr("height", 50)
-    .attr("width", 50);
-
-};
-
-
-// var start pacman
-var start = function() {
-
-  // move ghosts around every second
-  setInterval(function() {
-    update(data);
-  }, 1000);
-
-  // check for collisions
-  d3.timer(checkCollisions);
-
-};
-
-// update ghost position
-var update = function(data) {
-  svg.selectAll("image.ghost")
-    .data(data, function(d) { return d.id; })
-    .transition()
-    .duration(1000)
-    .ease("cubic")
-    .attr("x", function(d) { return d.getNewX(); })
-    .attr("y", function(d) { return d.getNewY(); });
-};
-
-var resetPacman = function() {
-  d3.selectAll("image").remove();
-  data = [];
-};
 
 /* HELPER FUNCTIONS */
 
-// make pacman draggable
+// add 'px' to value
+function pixelize(val) {
+  return val + "px";
+}
+
+function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+// update pacman's coordinates on drag
 function dragMove(d) {
-  d.x = d3.event.x;
-  d.y = d3.event.y;
-  d3.select(".pacman")
-    .attr("x", d.x)
-    .attr("y", d.y);
+  d3.select(this)
+    .attr("x", d3.event.x - settings.pacmanRadius)
+    .attr("y", d3.event.y - settings.pacmanRadius);
+}
+
+
+function checkCollisions() {
+
+  var collision = false;
+
+  ghosts.each(function(ghost) {
+    if (hasCollided(ghost)) {
+      if (!collision) {
+        collisionIncrementer();
+        collision = true;
+      }
+    }
+  });
 }
 
 // adjust coordinate to be center of image
 function adjustCoord(value) {
-  return value + pacmanRadius;
+  return value + settings.pacmanRadius;
 }
 
-// // check distance between two objects
+// check distance between a ghost and pacman
 function hasCollided(ghost) {
   var ghostX = adjustCoord(ghost.x);
   var ghostY = adjustCoord(ghost.y);
-  var pacmanX = adjustCoord(pacman[0].x);
-  var pacmanY = adjustCoord(pacman[0].y);
+  var pacmanX = adjustCoord(pacman.attr("x"));
+  var pacmanY = adjustCoord(pacman.attr("y"));
   var dx = pacmanX - ghostX;
   var dy = pacmanY - ghostY;
-  return Math.pow(dx, 2) + Math.pow(dy, 2) < Math.pow(2 * pacmanRadius, 2);
-}
-
-function checkCollisions() {
-  var ghosts = d3.selectAll(".ghost");
-  ghosts.each(function(ghost) {
-    if (hasCollided(ghost)) {
-
-      collisionIncrementer();
-      // resetPacman();
-      // setUpPacman();
-      // start();
-      // return;
-    }
-  });
+  return (dx * dx + dy * dy) < Math.pow(2 * settings.pacmanRadius, 2);
 }
 
 // increase collision counter
@@ -139,18 +143,14 @@ function collisionIncrementer() {
   d3.select(".collisions span").text(currCount);
 }
 
-// function updateScore() {
-//   current++;
-//   d3.select(".current span").text(current);
-// }
+function updateScore() {
+  d3.select(".current span").text(current);
+  d3.select(".high span").text(best);
+  d3.select(".collisions span").text(collisions);
+}
 
-// function updateBestScore() {
-//   if (current > best) {
-//     d3.select(".high span").text(current);
-//     current = 0;
-//   }
-// }
-
-setUpPacman();
-start();
-
+function updateBestScore() {
+  if (current > best) {
+    d3.select(".high span").text(current);
+  }
+}

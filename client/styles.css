@@ -61,11 +61,13 @@ body {
   background: #111;
 }
 
-#canvas {
+.board {
+  margin: 0 auto;
   position: absolute;
 }
 
 svg {
+  position: absolute;
   display: block;
   margin: 0 auto;
   border: 4px solid #4100e2;
@@ -79,4 +81,12 @@ div {
 
 .scoreboard div {
   margin: 12px;
+}
+
+.pacman {
+  position: relative;
+}
+
+.ghost {
+  position: relative;
 }

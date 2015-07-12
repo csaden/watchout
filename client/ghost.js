@@ -6,11 +6,11 @@ var Ghost = function(id, imagePath) {
 };
 
 Ghost.prototype.getNewX = function() {
-  this.x = Math.random() * (parseInt(svg.style("width"), 10) - 100);
+  this.x = getRandomArbitrary(settings.width - (2*settings.pacmanRadius), 0);
   return this.x;
 };
 
 Ghost.prototype.getNewY = function() {
-  this.y = Math.random() * (parseInt(svg.style("height"), 10) - 100);
+  this.y = getRandomArbitrary(settings.height - (2*settings.pacmanRadius), 0);
   return this.y;
 };
