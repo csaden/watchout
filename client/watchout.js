@@ -9,7 +9,9 @@ settings = {
   "animationDuration": 1500
 };
 
-var current, best, collisions;
+var score = 0;
+var best = 0;
+var collisionCount = 0;
 
 var svg = d3.select(".board")
   .append("svg")
@@ -85,6 +87,8 @@ svg.on("mousemove", function() {
 // check for collisions
 d3.timer(checkCollisions);
 
+setInterval(scoreTicker, 100);
+
 
 /* HELPER FUNCTIONS */
 
@@ -93,6 +97,7 @@ function pixelize(val) {
   return val + "px";
 }
 
+// get random value between min and max
 function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
 }
@@ -104,6 +109,7 @@ function dragMove(d) {
     .attr("y", d3.event.y - settings.pacmanRadius);
 }
 
+var prevCollision = false;
 
 function checkCollisions() {
 
@@ -111,12 +117,18 @@ function checkCollisions() {
 
   ghosts.each(function(ghost) {
     if (hasCollided(ghost)) {
-      if (!collision) {
-        collisionIncrementer();
-        collision = true;
-      }
+      collision = true;
     }
   });
+
+  if (collision) {
+    score = 0;
+    if (prevCollision !== collision) {
+      collisionCount += 1;
+      updateScore();
+    }
+  }
+  prevCollision = collision;
 }
 
 // adjust coordinate to be center of image
@@ -137,20 +149,20 @@ function hasCollided(ghost) {
 
 // increase collision counter
 function collisionIncrementer() {
-  var currCount = d3.select(".collisions span").text();
-  currCount = parseInt(currCount, 10);
-  currCount += 1;
-  d3.select(".collisions span").text(currCount);
-}
-
-function updateScore() {
-  d3.select(".current span").text(current);
-  d3.select(".high span").text(best);
+  var collisions = d3.select(".collisions span").text();
+  collisions = parseInt(collisions, 10);
+  collisions += 1;
   d3.select(".collisions span").text(collisions);
 }
 
-function updateBestScore() {
-  if (current > best) {
-    d3.select(".high span").text(current);
-  }
+function updateScore() {
+  d3.select(".current span").text(score);
+  d3.select(".high span").text(best);
+  d3.select(".collisions span").text(collisionCount);
+}
+
+function scoreTicker() {
+  score = score + 1;
+  best = Math.max(score, best);
+  updateScore();
 }
