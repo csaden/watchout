@@ -25,7 +25,11 @@ var data = [];
 
 // create ghost ids and image paths
 for (var i = 0; i < 12; i++) {
-  data.push( new Ghost( i, imagePaths[i % 3] ) );
+  var ghost = {
+    "_id": i,
+    "imagePath": imagePaths[i % 3]
+  };
+  data.push( ghost );
 }
 
 // // make pacman draggable
@@ -43,13 +47,13 @@ var pacman = svg.append("image")
 
 // append ghosts
 var ghosts = svg.selectAll("span")
-  .data(data, function(d) { return d.id; })
+  .data(data, function(d) { return d._id; })
   .enter()
   .append("image")
   .attr("class", "ghost")
   .attr("xlink:href", function(d) {return d.imagePath; })
-  .attr("x", function(d) { return d.x; })
-  .attr("y", function(d) { return d.y; })
+  .attr("x", getNewX)
+  .attr("y", getNewY)
   .attr("height", settings.imageHeight)
   .attr("width", settings.imageWidth);
 
@@ -58,8 +62,8 @@ var move = function(element) {
   element.transition()
     .duration(settings.animationDuration)
     .ease("cubic-in-out")
-    .attr("x", function(d) { return d.getNewX(); })
-    .attr("y", function(d) { return d.getNewY(); })
+    .attr("x", getNewX)
+    .attr("y", getNewY)
 
     // transition can emit 'start' 'interrupt' and 'end' events
     // recursively move one element (this) after the previous transition ends
@@ -80,7 +84,8 @@ svg.on("mousemove", function() {
   if (settings.pacmanRadius > loc[1] || loc[1] > settings.height - settings.pacmanRadius) {
     return;
   }
-  pacman.attr("x", loc[0] - settings.pacmanRadius)
+  pacman
+    .attr("x", loc[0] - settings.pacmanRadius)
     .attr("y", loc[1] - settings.pacmanRadius);
 });
 
@@ -102,6 +107,14 @@ function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
 }
 
+function getNewX() {
+  return getRandomArbitrary(settings.width - (2*settings.pacmanRadius), 0);
+}
+
+function getNewY() {
+  return getRandomArbitrary(settings.height - (2*settings.pacmanRadius), 0);
+}
+
 // update pacman's coordinates on drag
 function dragMove(d) {
   d3.select(this)
@@ -115,8 +128,8 @@ function checkCollisions() {
 
   var collision = false;
 
-  ghosts.each(function(ghost) {
-    if (hasCollided(ghost)) {
+  ghosts.each(function(d, i) {
+    if (hasCollided(this)) {
       collision = true;
     }
   });
@@ -133,15 +146,15 @@ function checkCollisions() {
 
 // adjust coordinate to be center of image
 function adjustCoord(value) {
-  return value + settings.pacmanRadius;
+  return parseFloat(value) + settings.pacmanRadius;
 }
 
 // check distance between a ghost and pacman
 function hasCollided(ghost) {
-  var ghostX = adjustCoord(ghost.x);
-  var ghostY = adjustCoord(ghost.y);
-  var pacmanX = adjustCoord(pacman.attr("x"));
-  var pacmanY = adjustCoord(pacman.attr("y"));
+  var ghostX = adjustCoord(d3.select(ghost).attr("x"));
+  var ghostY = adjustCoord(d3.select(ghost).attr("y"));
+  var pacmanX = adjustCoord(d3.select('.pacman').attr("x"));
+  var pacmanY = adjustCoord(d3.select('.pacman').attr("y"));
   var dx = pacmanX - ghostX;
   var dy = pacmanY - ghostY;
   return (dx * dx + dy * dy) < Math.pow(2 * settings.pacmanRadius, 2);

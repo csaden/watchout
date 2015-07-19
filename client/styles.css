@@ -62,12 +62,12 @@ body {
 }
 
 .board {
-  position: relative;
   margin: 0 auto;
+  position: absolute;
 }
 
 svg {
-  position: relative;
+  position: absolute;
   display: block;
   margin: 0 auto;
   border: 4px solid #4100e2;
@@ -83,18 +83,10 @@ div {
   margin: 12px;
 }
 
-.ghost {
-  position: absolute;
-  background-size: 100% 100%;
-  background-image: url("assets/inky.png");
-  height: 50px;
-  width: 50px;
+.pacman {
+  position: relative;
 }
 
-.pacman {
-  position: absolute;
-  background-size: 100% 100%;
-  background-image: url("assets/pacman.png");
-  height: 50px;
-  width: 50px;
+.ghost {
+  position: relative;
 }
